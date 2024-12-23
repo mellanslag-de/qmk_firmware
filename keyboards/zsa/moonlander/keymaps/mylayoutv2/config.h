@@ -1,0 +1,58 @@
+/*
+  Set any config.h overrides for your specific keymap here.
+  See config.h options at https://docs.qmk.fm/#/config_options?id=the-configh-file
+*/
+
+// MOUSE
+#undef MK_KINETIC_SPEED
+#undef MK_MOMENTARY_ACCEL
+#undef MK_COMBINED
+
+#undef MOUSEKEY_DELAY
+#define MOUSEKEY_DELAY 200
+
+#undef MOUSEKEY_INTERVAL
+#define MOUSEKEY_INTERVAL 16
+
+#undef MOUSEKEY_MOVE_DELTA
+#define MOUSEKEY_MOVE_DELTA 2
+
+#undef MOUSEKEY_MAX_SPEED
+#define MOUSEKEY_MAX_SPEED 10
+
+#undef MOUSEKEY_TIME_TO_MAX
+#define MOUSEKEY_TIME_TO_MAX 20
+
+
+
+
+//#define ORYX_CONFIGURATOR
+
+#undef TAPPING_TERM
+#define TAPPING_TERM 250
+
+#undef PERMISSIVE_HOLD
+#define PERMISSIVE_HOLD
+
+#undef RGB_DISABLE_TIMEOUT
+#define RGB_DISABLE_TIMEOUT 600000
+
+#undef RGB_MATRIX_VAL_STEP
+#define RGB_MATRIX_VAL_STEP 18
+
+#undef USB_SUSPEND_WAKEUP_DELAY
+#define USB_SUSPEND_WAKEUP_DELAY 200
+
+#undef MOUSEKEY_WHEEL_INTERVAL
+#define MOUSEKEY_WHEEL_INTERVAL 50
+
+#undef MOUSEKEY_WHEEL_TIME_TO_MAX
+#define MOUSEKEY_WHEEL_TIME_TO_MAX 80
+
+
+
+#define FIRMWARE_VERSION
+#define RGB_MATRIX_STARTUP_SPD 60
+
+#define UNICODE_SELECTED_MODES UNICODE_MODE_WINCOMPOSE
+#define UNICODE_KEY_WINC KC_F13
