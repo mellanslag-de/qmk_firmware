@@ -27,6 +27,7 @@
 #include "version.h"
 #include "keymap.h"
 #include "keymap_german.h"
+/*#include "quickshift.c"*/
 
 enum unicode_names {
     // EMOJIS
@@ -183,22 +184,6 @@ enum my_keycodes {
     UKC_EMOJI_ARROW_LEFT,
 };
 
-enum layers {
-    BASE,  // default layer
-    SYMB,  // symbols
-    MDIA,  // media keys
-    // -----
-    LETTERS,
-    NAVNUM,
-    SYMBOLS,
-    NEO_LAYER_5,
-    NEO_LAYER_6,
-    QWERTZ,
-    QWERTZ_GAMING,
-    FN,
-    SYSTEM,
-    EMOJI,
-};
 
 enum custom_keycodes {
     VRSN = SAFE_RANGE,
@@ -294,7 +279,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                                                                                                                     KC_TRANSPARENT,                  KC_TRANSPARENT,                  KC_TRANSPARENT,                                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT
   ),
   [NEO_LAYER_5] = LAYOUT_moonlander(
-//  >                              <>                              <>                              <>                              <>                              <>                              <>                              <===============>                              <>                              <>                              <>                              <>                              <>                              <>                              <
+//  >                                  <>                              <>                              <>                              <>                              <>                              <>                              <===============>                              <>                              <>                              <>                              <>                              <>                              <>                              <
     KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 LCTL(LGUI(LSFT(RALT(KC_B)))),   KC_TRANSPARENT,                 KC_TRANSPARENT,                                 KC_TRANSPARENT,                KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,
     KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                                 KC_TRANSPARENT,                KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,
     KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                                 KC_TRANSPARENT,                KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_TRANSPARENT,
@@ -340,12 +325,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [EMOJI] = LAYOUT_moonlander(
 //  >                              <>                              <>                              <>                              <>                              <>                              <>                              <===============>                              <>                              <>                              <>                              <>                              <>                              <>                              <
-    KC_NO,                          UKC_EMOJI_ARROW_LEFT,           UKC_EMOJI_ARROW_DOWN,           UKC_EMOJI_ARROW_UP,             UKC_EMOJI_ARROW_RIGHT,          KC_NO         ,                 KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO,                          UM(UNICODE_FOLDED_HANDS),        KC_NO,                          KC_NO,                          KC_NO,
-    UM(E_FEUER),                     UKC_EMOJI_KEINE_AHNUNG,         UKC_EMOJI_MELDEN,               UM(E_AFFE_AUGEN),                UM(E_DAUMEN_HOCH),               UM(E_WINKEN),                    UM(E_HEULEN),                                   UM(E_PARTY_TUETE),               UM(E_ENGEL),                     UM(E_SMILEY_UMGEDREHT),          UM(E_SMILEY),                    UM(E_ZWINKERN),                  UM(E_BERECHNEND),                UM(E_CROSS_MARK),
-    UM(E_KICHERN),                   UM(E_HERZAUGEN),                 UM(UNICODE_VERLIEBT),            UM(UNICODE_KUSS),                UKC_EMOJI_HERZ,                 UM(E_ROTE_WANGEN),               UM(E_ERSTAUNT),                                 UM(E_PARTY_TROETE),              UM(E_HEULEN),                    UM(E_LAECHELN_MIT_SCHMUNZELN),   UM(E_LAECHELN_MIT_ZAEHNEN),      UM(E_LAECHELN_MIT_GROSSEN_AUGEN),UM(E_LAECHELN_MIT_GROSSEM_MUND), UKC_EMOJI_CHECK_MARK,
-    UKC_EMOJI_TRAURIG_STARK,        UM(E_SMILEY_TRAURIG_LEICHT),     UM(E_SMILEY_OHNE_MUND),          UM(E_SMILEY_DOOF),               UM(E_AUGEN_VERDREHEN),           UM(E_BESORGT),                                                                                                  UM(E_ROFL),                      UM(E_ZWEI_TRAENEN),               UM(E_EINE_TRAENE),                UM(E_ZUNGE),                     UM(E_LECKEN),                    UM(E_CRAZY),
-    KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                                                          KC_NO,                                         KC_NO,                                                          KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,
-                                                                                                                                    KC_NO,                          KC_NO,                          KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO
+    KC_NO,                          UKC_EMOJI_ARROW_LEFT,           UKC_EMOJI_ARROW_DOWN,           UKC_EMOJI_ARROW_UP,             UKC_EMOJI_ARROW_RIGHT,          KC_NO         ,                 KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO,                          UM(UNICODE_FOLDED_HANDS),       KC_NO,                           KC_NO,                          KC_NO,
+    UM(E_FEUER),                    UKC_EMOJI_KEINE_AHNUNG,         UKC_EMOJI_MELDEN,               UM(E_AFFE_AUGEN),               UM(E_DAUMEN_HOCH),              UM(E_WINKEN),                   UM(E_HEULEN),                                  UM(E_PARTY_TUETE),              UM(E_ENGEL),                    UM(E_SMILEY_UMGEDREHT),         UM(E_SMILEY),                   UM(E_ZWINKERN),                  UM(E_BERECHNEND),               UM(E_CROSS_MARK),
+    UM(E_KICHERN),                  UM(E_HERZAUGEN),                UM(UNICODE_VERLIEBT),           UM(UNICODE_KUSS),               UKC_EMOJI_HERZ,                 UM(E_ROTE_WANGEN),              UM(E_ERSTAUNT),                                UM(E_PARTY_TROETE),             UM(E_HEULEN),                   UM(E_LAECHELN_MIT_SCHMUNZELN),  UM(E_LAECHELN_MIT_ZAEHNEN),     UM(E_LAECHELN_MIT_GROSSEN_AUGEN),UM(E_LAECHELN_MIT_GROSSEM_MUND),UKC_EMOJI_CHECK_MARK,
+    UKC_EMOJI_TRAURIG_STARK,        UM(E_SMILEY_TRAURIG_LEICHT),    UM(E_SMILEY_OHNE_MUND),         UM(E_SMILEY_DOOF),              UM(E_AUGEN_VERDREHEN),          UM(E_BESORGT),                                                                                                         UM(E_ROFL),                     UM(E_ZWEI_TRAENEN),             UM(E_EINE_TRAENE),              UM(E_ZUNGE),                 UM(E_LECKEN),               UM(E_CRAZY),
+    KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                                                              KC_NO,                                         KC_NO,                                                              KC_NO,                          KC_NO,                          KC_NO,                       KC_NO,                      KC_NO,
+                                                                                                                                                    KC_NO,                          KC_NO,                          KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO
   ),
 };
 // @formatter:on
@@ -359,4 +344,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
     }
     return true;
+}
+
+void matrix_scan_user() {
+    /*    if (mouse_delay_active && timer_elapsed(quickshift_timer) > 250) {
+            mouse_delay_active = false;
+            register_code(mouse_delay_keycode);
+        }*/
+    /*quickshift__matrix_scan_user();*/
 }
