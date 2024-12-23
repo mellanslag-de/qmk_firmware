@@ -125,7 +125,7 @@ via*.json
 /keyboards/**
 !/keyboards/zsa/
 !/keyboards/zsa/**
-/keyboards/zsa/**/keymaps/**
+# /keyboards/zsa/**/keymaps/**
 !/keyboards/zsa/**/keymaps/default
 !/keyboards/zsa/**/keymaps/default/**
 !/keyboards/zsa/**/keymaps/oryx
