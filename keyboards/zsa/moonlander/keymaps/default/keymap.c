@@ -18,6 +18,8 @@
 
 
 
+#include <stdint.h>
+#include "quantum_keycodes.h"
 #include QMK_KEYBOARD_H
 #include "version.h"
 
