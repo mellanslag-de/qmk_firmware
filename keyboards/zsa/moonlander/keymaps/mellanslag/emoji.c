@@ -2,21 +2,19 @@
 #include "my_keycodes.h"
 #include "unicode/unicode.h"
 
-typedef struct {
+const struct {
     enum my_keycodes keycode;
     const char* unicode;
-} unicode_map_t;
-
-const unicode_map_t keycode_to_unicode_map[] = {
-    {UKC_EMOJI_HERZ, "\u2764\uFE0F"},                    // Heart
-    {UKC_EMOJI_TRAURIG_STARK, "\u2639\uFE0F"},           // Crying face
-    {UKC_EMOJI_KEINE_AHNUNG, "\u200D\u2642\uFE0F"},            // Shrug
-    {UKC_EMOJI_MELDEN, "\u200D\u2642\uFE0F"},                  // Raising hand
-    {UKC_EMOJI_CHECK_MARK, "\u2714\uFE0F"},              // Check mark
-    {UKC_EMOJI_ARROW_UP, "\u2B06\uFE0F"},          // Up arrow
-    {UKC_EMOJI_ARROW_DOWN, "\u2B07\uFE0F"},        // Down arrow
+} keycode_to_unicode_map[] = {
+    {UKC_EMOJI_HERZ, "\u2764\uFE0F"},               // Heart
+    {UKC_EMOJI_TRAURIG_STARK, "\u2639\uFE0F"},      // Crying face
+    {UKC_EMOJI_KEINE_AHNUNG, "\u200D\u2642\uFE0F"}, // Shrug
+    {UKC_EMOJI_MELDEN, "\u200D\u2642\uFE0F"},       // Raising hand
+    {UKC_EMOJI_CHECK_MARK, "\u2714\uFE0F"},         // Check mark
+    {UKC_EMOJI_ARROW_UP, "\u2B06\uFE0F"},           // Up arrow
+    {UKC_EMOJI_ARROW_DOWN, "\u2B07\uFE0F"},         // Down arrow
     {UKC_EMOJI_ARROW_RIGHT, "\u27A1\uFE0F"},        // Right arrow
-    {UKC_EMOJI_ARROW_LEFT, "\u2B05\uFE0F"},        // Left arrow
+    {UKC_EMOJI_ARROW_LEFT, "\u2B05\uFE0F"},         // Left arrow
 };
 
 static inline const char* get_unicode_string(uint16_t keycode) {
