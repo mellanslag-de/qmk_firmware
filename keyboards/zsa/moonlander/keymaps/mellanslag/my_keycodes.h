@@ -1,3 +1,5 @@
+#pragma once
+
 #include "quantum_keycodes.h"
 
 enum my_keycodes {

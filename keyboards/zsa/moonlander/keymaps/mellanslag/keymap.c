@@ -28,6 +28,7 @@
 //#include "quantum_keycodes.h"
 #include "quickshift.c"
 #include "my_keycodes.h"
+#include "emoji.c"
 
 enum unicode_names {
     // EMOJIS
@@ -312,6 +313,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // @formatter:on
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!emoji__process_record_user(keycode, record)) {
+        return false;
+    }
+
     return true;
 }
 
