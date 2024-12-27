@@ -18,16 +18,16 @@
 
 
 
+#include "keymap.h"
 #include <stdint.h>
 #include "action.h"
 #include "moonlander.h"
 #include "quantum.h"
-#include "quantum_keycodes.h"
 #include QMK_KEYBOARD_H
-#include "version.h"
-#include "keymap.h"
 #include "keymap_german.h"
-/*#include "quickshift.c"*/
+//#include "quantum_keycodes.h"
+#include "quickshift.c"
+#include "my_keycodes.h"
 
 enum unicode_names {
     // EMOJIS
@@ -134,7 +134,7 @@ const uint32_t PROGMEM unicode_map[] = {
     [E_PARTY_TUETE]                = 0x1F389,  // https://emojipedia.org/party-popper/
     [E_PARTY_TROETE]               = 0x1F973,  // https://emojipedia.org/partying-face/
     [E_CROSS_MARK]                 = 0x274C,   // https://emojipedia.org/cross-mark/
-    [UNICODE_FOLDED_HANDS]         = 0x1F64F,   // https://emojipedia.org/cross-mark/
+    [UNICODE_FOLDED_HANDS]         = 0x1F64F,  // https://emojipedia.org/cross-mark/
 
     // SPECIAL CHARACTERS
     [C_CIRCUMFLEX_ACCENT]          = 0x5E,    // https://unicodelookup.com/#94/1
@@ -165,30 +165,6 @@ const uint32_t PROGMEM unicode_map[] = {
     [C_EURO_SIGN]                  = 0x20AC,  // https://unicodelookup.com/#8364/1
 };
 
-enum my_keycodes {
-    // MACROS
-    M_RGB_WHITE = SAFE_RANGE,
-    M_RGB_ORANGE,
-    M_RGB_YELLOW,
-    M_OPEN_DISPLAY_SETTINGS,
-
-    // EMOJIS
-    UKC_EMOJI_HERZ,
-    UKC_EMOJI_TRAURIG_STARK,
-    UKC_EMOJI_KEINE_AHNUNG,
-    UKC_EMOJI_MELDEN,
-    UKC_EMOJI_CHECK_MARK,
-    UKC_EMOJI_ARROW_UP,
-    UKC_EMOJI_ARROW_DOWN,
-    UKC_EMOJI_ARROW_RIGHT,
-    UKC_EMOJI_ARROW_LEFT,
-};
-
-
-enum custom_keycodes {
-    VRSN = SAFE_RANGE,
-};
-
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [BASE] = LAYOUT_moonlander(
@@ -201,7 +177,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [SYMB] = LAYOUT_moonlander(
-        VRSN,    KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   _______,           _______, KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,
+        KC_NO,    KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   _______,           _______, KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,
         _______, KC_EXLM, KC_AT,   KC_LCBR, KC_RCBR, KC_PIPE, _______,           _______, KC_UP,   KC_7,    KC_8,    KC_9,    KC_ASTR, KC_F12,
         _______, KC_HASH, KC_DLR,  KC_LPRN, KC_RPRN, KC_GRV,  _______,           _______, KC_DOWN, KC_4,    KC_5,    KC_6,    KC_PLUS, _______,
         _______, KC_PERC, KC_CIRC, KC_LBRC, KC_RBRC, KC_TILD,                             KC_AMPR, KC_1,    KC_2,    KC_3,    KC_BSLS, _______,
@@ -336,13 +312,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // @formatter:on
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        switch (keycode) {
-        case VRSN:
-            SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
-            return false;
-        }
-    }
     return true;
 }
 
@@ -351,5 +320,5 @@ void matrix_scan_user() {
             mouse_delay_active = false;
             register_code(mouse_delay_keycode);
         }*/
-    /*quickshift__matrix_scan_user();*/
+    quickshift__matrix_scan_user();
 }

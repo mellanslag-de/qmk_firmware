@@ -1,3 +1,5 @@
+#pragma once
+
 enum layers {
     BASE,  // default layer
     SYMB,  // symbols
