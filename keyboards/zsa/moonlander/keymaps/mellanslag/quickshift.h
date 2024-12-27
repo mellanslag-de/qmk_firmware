@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "keycodes.h"
-#include "keymap.h"
+#include "layers.h"
 #include "keymap_german.h"
 #include "quantum_keycodes.h"
 
