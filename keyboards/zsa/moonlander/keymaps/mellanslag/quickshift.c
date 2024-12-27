@@ -5,7 +5,7 @@
 #include "action.h"
 #include "action_util.h"
 #include "quantum.h"
-#include "caps_word.h"
+#include "caps_word.c"
 
 //
 // Created by ddeut on 06.07.2021.
