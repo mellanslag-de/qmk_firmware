@@ -18,4 +18,4 @@
 
 #pragma once
 
-#define ORYX_CONFIGURATOR
+//#define UNICODE_SELECTED_MODES UNICODE_MODE_MACOS
