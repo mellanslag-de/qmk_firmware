@@ -58,7 +58,7 @@ void disable_timer_if_modifier_was_pressed(uint16_t keycode, keyrecord_t *record
             case KC_RALT:   // fall through
             case KC_LGUI:   // fall through
             case KC_RGUI:
-                is_quickshift_timer_active = false;
+                quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
         }
     }
 }
@@ -75,11 +75,11 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
             register_code(keycode);
             unregister_code(keycode);
 
-            is_quickshift_timer_active  = true;
-            quickshift_timer            = record->event.time;
-            quickshift_keycode_of_timer = keycode;
+            quickshift_timer_state   = KEY_PRESSED__AWAITING_RELEASE;
+            quickshift_timer         = record->event.time;
+            quickshift_timer_keycode = keycode;
         } else {
-            is_quickshift_timer_active = false;
+            quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
         }
 
         return true;
@@ -91,18 +91,24 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
 void quickshift__matrix_scan_user(void) {
     if (
         is_quickshift_currently_active()
-        && is_quickshift_timer_active
-        && timer_elapsed(quickshift_timer) > quickshift_timeout
     ) {
-        uint16_t shifted_keycode = get_shifted_keycode(quickshift_keycode_of_timer);
+        if (quickshift_timer_state == KEY_PRESSED__AWAITING_RELEASE && timer_elapsed(quickshift_timer) > quickshift_trigger_timer_timeout) {
+            register_code(KC_BSPC);
+            unregister_code(KC_BSPC);
 
-        register_code(KC_BSPC);
-        unregister_code(KC_BSPC);
+            quickshift_timer = timer_read();
+            quickshift_timer_state = TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY;
+        }
 
-        register_code16(shifted_keycode);
-        unregister_code16(shifted_keycode);
+        if (quickshift_timer_state == TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY && timer_elapsed(quickshift_timer) > quickshift_char_timer_timeout) {
+            uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
 
-        is_quickshift_timer_active = false;
+            register_code16(shifted_keycode);
+            unregister_code16(shifted_keycode);
+
+            quickshift_timer = 0;
+            quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
+        }
     }
 }
 
@@ -117,4 +123,3 @@ void quickshift__layer_set_state_user(layer_state_t state) {
     }
     is_quickshift_active_at_current_layer = false;
 }
-
