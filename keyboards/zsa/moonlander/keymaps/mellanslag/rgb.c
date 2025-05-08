@@ -18,7 +18,7 @@ const uint8_t ledmap[][RGB_MATRIX_LED_COUNT][3] = {
 };
 // @formatter:on
 
-void set_layer_color(int layer) {
+void rgb__set_layer_color(int layer) {
     for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
         HSV hsv = {
             .h = pgm_read_byte(&ledmap[layer][i][0]),
@@ -41,25 +41,25 @@ bool rgb__rgb_matrix_indicators_user(void) {
     }
     switch (biton32(layer_state)) {
         case 4:
-            set_layer_color(4);
+            rgb__set_layer_color(4);
             break;
         case 5:
-            set_layer_color(5);
+            rgb__set_layer_color(5);
             break;
         case 6:
-            set_layer_color(6);
+            rgb__set_layer_color(6);
             break;
         case 7:
-            set_layer_color(7);
+            rgb__set_layer_color(7);
             break;
         case 8:
-            set_layer_color(8);
+            rgb__set_layer_color(8);
             break;
         case 9:
-            set_layer_color(9);
+            rgb__set_layer_color(9);
             break;
         case 10:
-            set_layer_color(10);
+            rgb__set_layer_color(10);
             break;
         default:
             if (rgb_matrix_get_flags() == LED_FLAG_NONE) rgb_matrix_set_color_all(0, 0, 0);
