@@ -101,7 +101,7 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return true;
         } else if (record->event.pressed && is_only_shift_modifier_currently_active() && is_special_keycode(keycode)) {
-            uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
+            uint16_t shifted_keycode = get_shifted_keycode(keycode);
             uint8_t mods = get_mods();
 
             unregister_mods(mods);
