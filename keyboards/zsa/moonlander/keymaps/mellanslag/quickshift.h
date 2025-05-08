@@ -25,7 +25,7 @@ int quickshift_trigger_timer_timeout = 150;
 // Timer when quickshift triggers the keypress, once it triggered and immediately sent backspace
 int quickshift_char_timer_timeout = 5;
 
-uint16_t quickshift_active_keycodes[] = {
+uint16_t quickshift_active_keycodes_basic[] = {
     KC_A,
     KC_B,
     KC_C,
@@ -55,14 +55,22 @@ uint16_t quickshift_active_keycodes[] = {
     DE_ADIA,
     DE_ODIA,
     DE_UDIA,
+};
+
+uint16_t quickshift_active_keycodes_special[] = {
     DE_SS,
+    KC_2,
+    KC_6
 };
 
 uint16_t quickshift_special_keycode_mappings[][2] = {
-    {DE_SS,                RALT(S(DE_SS))},
+    {DE_SS, RALT(LSFT(DE_SS))},
+    {KC_2,  LSFT(KC_3)},
+    {KC_6,  RALT(KC_E)},
 };
 
 int quickshift_active_layers[] = {
     LETTERS,
     QWERTZ,
 };
+

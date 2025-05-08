@@ -10,50 +10,67 @@
 //
 // Created by ddeut on 06.07.2021.
 //
-bool is_quickshift_active_for_keycode(uint16_t keycode) {
-    for (int i = 0; i < sizeof(quickshift_active_keycodes) / sizeof(quickshift_active_keycodes[0]); i++) {
-        if (quickshift_active_keycodes[i] == keycode) {
+
+bool array_contains(uint16_t *arr, int size, uint16_t val) {
+    for (int i = 0; i < size; i++) {
+        if (arr[i] == val) {
             return true;
         }
     }
-
     return false;
 }
 
+bool is_basic_keycode(uint16_t keycode) {
+    return array_contains(quickshift_active_keycodes_basic, sizeof(quickshift_active_keycodes_basic), keycode);
+}
+
+bool is_special_keycode(uint16_t keycode) {
+    return array_contains(quickshift_active_keycodes_special, sizeof(quickshift_active_keycodes_special), keycode);
+}
+
+bool is_quickshift_active_for_keycode(uint16_t keycode) {
+    return is_basic_keycode(keycode) || is_special_keycode(keycode);
+}
+
 uint16_t get_shifted_keycode(uint16_t keycode) {
-    for (int i = 0; i < sizeof(quickshift_special_keycode_mappings) / sizeof(quickshift_special_keycode_mappings[0]); i++) {
+    if (is_special_keycode(keycode)) {
+        for (int i = 0; i < sizeof(quickshift_special_keycode_mappings) / sizeof(quickshift_special_keycode_mappings[0]); i++) {
         if (quickshift_special_keycode_mappings[i][0] == keycode) {
             return quickshift_special_keycode_mappings[i][1];
         }
     }
+    }
+    return LSFT(keycode);
+}
 
-    return S(keycode);
-}
 bool is_any_modifier_currently_active(void) {
+    uint8_t mods = get_mods() | get_weak_mods() | get_oneshot_mods();
+
     return
-        get_mods() & MOD_MASK_CTRL
-        || get_mods() & MOD_MASK_SHIFT
-        || get_mods() & MOD_MASK_ALT
-        || get_mods() & MOD_MASK_GUI
-        || get_oneshot_mods() & MOD_MASK_CTRL
-        || get_oneshot_mods() & MOD_MASK_SHIFT
-        || get_oneshot_mods() & MOD_MASK_ALT
-        || get_oneshot_mods() & MOD_MASK_GUI;
+        mods & MOD_MASK_CTRL
+        || mods & MOD_MASK_SHIFT
+        || mods & MOD_MASK_ALT
+        || mods & MOD_MASK_GUI;
 }
+
+bool is_only_shift_modifier_currently_active(void) {
+    uint8_t mods = get_mods() | get_weak_mods() | get_oneshot_mods();
+    return (mods & ~MOD_MASK_SHIFT) == 0 && (mods & MOD_MASK_SHIFT);
+}
+
 bool is_quickshift_currently_active(void) {
     return
         is_quickshift_active
-        && is_quickshift_active_at_current_layer
-        && !is_any_modifier_currently_active();
+        && is_quickshift_active_at_current_layer;
 }
 
 void disable_timer_if_modifier_was_pressed(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         switch (keycode) {
-            case KC_LCTL:  // fall through
-            case KC_RCTL:  // fall through
-            case KC_LSFT: // fall through
-            case KC_RSFT: // fall through
+            case KC_LCTL:   // fall through
+            case KC_RCTL:   // fall through
+            case KC_LSFT:   // fall through
+            case KC_RSFT:   // fall through
             case KC_LALT:   // fall through
             case KC_RALT:   // fall through
             case KC_LGUI:   // fall through
@@ -68,21 +85,32 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (
         is_quickshift_currently_active()
-        && is_quickshift_active_for_keycode(keycode)
         && !is_caps_word_on()
+
     ) {
-        if (record->event.pressed) {
-            register_code(keycode);
-            unregister_code(keycode);
+        if (!is_any_modifier_currently_active() && is_quickshift_active_for_keycode(keycode)) {
+            if (record->event.pressed) {
+                register_code(keycode);
+                unregister_code(keycode);
 
-            quickshift_timer_state   = KEY_PRESSED__AWAITING_RELEASE;
-            quickshift_timer         = record->event.time;
-            quickshift_timer_keycode = keycode;
-        } else {
-            quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
+                quickshift_timer_state   = KEY_PRESSED__AWAITING_RELEASE;
+                quickshift_timer         = record->event.time;
+                quickshift_timer_keycode = keycode;
+            } else {
+                quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
+            }
+            return true;
+        } else if (record->event.pressed && is_only_shift_modifier_currently_active() && is_special_keycode(keycode)) {
+            uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
+            uint8_t mods = get_mods();
+
+            unregister_mods(mods);
+            register_code16(shifted_keycode);
+            unregister_code16(shifted_keycode);
+            register_mods(mods);
+
+            return true;
         }
-
-        return true;
     }
 
     return false;
@@ -90,7 +118,7 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void quickshift__matrix_scan_user(void) {
     if (
-        is_quickshift_currently_active()
+        is_quickshift_currently_active() && !is_any_modifier_currently_active()
     ) {
         if (quickshift_timer_state == KEY_PRESSED__AWAITING_RELEASE && timer_elapsed(quickshift_timer) > quickshift_trigger_timer_timeout) {
             register_code(KC_BSPC);
