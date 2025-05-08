@@ -21,6 +21,7 @@
 #include "action.h"
 #include "info_config.h"
 #include "moonlander.h"
+#include "key_overrides.c"
 #include "quantum.h"
 #include QMK_KEYBOARD_H
 #include "keymap_german.h"
