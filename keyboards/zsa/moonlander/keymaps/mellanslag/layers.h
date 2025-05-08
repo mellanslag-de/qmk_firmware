@@ -1,10 +1,6 @@
 #pragma once
 
 enum layers {
-    BASE,  // default layer
-    SYMB,  // symbols
-    MDIA,  // media keys
-    // -----
     LETTERS,
     NAVNUM,
     SYMBOLS,
