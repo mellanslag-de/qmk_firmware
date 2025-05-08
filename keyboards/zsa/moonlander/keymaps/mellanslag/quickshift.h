@@ -23,7 +23,7 @@ uint16_t quickshift_timer_keycode = 0;
 int quickshift_trigger_timer_timeout = 150;
 
 // Timer when quickshift triggers the keypress, once it triggered and immediately sent backspace
-int quickshift_char_timer_timeout = 10;
+int quickshift_char_timer_timeout = 5;
 
 uint16_t quickshift_active_keycodes[] = {
     KC_A,
