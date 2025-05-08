@@ -191,7 +191,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,                         KC_X,                           KC_V,                           KC_L,                           KC_C,                           KC_W,                           KC_F13,                                         LALT(KC_F4),                   KC_K,                           KC_H,                           KC_G,                           KC_F,                           KC_Q,                           KC_TAB,
     DE_SS,                          KC_U,                           KC_I,                           KC_A,                           KC_E,                           KC_O,                           UM(C_GRAVE_ACCENT),                             UM(C_ACUTE_ACCENT),            KC_S,                           KC_N,                           KC_R,                           KC_T,                           KC_D,                           DE_Y,
     KC_LGUI,                        DE_UDIA,                        DE_ODIA,                        DE_ADIA,                        KC_P,                           DE_Z,                                                                                                                  KC_B,                           KC_M,                           KC_COMMA,                       KC_DOT,                     KC_J,                       KC_LGUI,
-    LCTL(LGUI(KC_LEFT)),            LSFT(RALT(KC_TAB)),             LT(EMOJI,KC_HOME),              LALT_T(KC_UP),                  LT(SYMBOLS,KC_DOWN),                                                LALT_T(KC_ESCAPE),                              MEH(KC_X),                                                         LT(SYMBOLS,KC_LEFT),            LALT_T(KC_RIGHT),               LT(EMOJI,KC_END),           RALT(KC_TAB),               LCTL(LGUI(KC_RIGHT)),
+    LCTL(LGUI(KC_LEFT)),            LSFT(RALT(KC_TAB)),             LT(EMOJI,KC_HOME),              LALT_T(KC_UP),                  LT(SYMBOLS,KC_DOWN),                                                LALT_T(KC_ESCAPE),                              LCTL(LALT(LGUI((KC_X)))),                                          LT(SYMBOLS,KC_LEFT),            LALT_T(KC_RIGHT),               LT(EMOJI,KC_END),           RALT(KC_TAB),               LCTL(LGUI(KC_RIGHT)),
                                                                                                                                                     LT(FN,KC_SPACE),                LSFT_T(KC_BSPC),                LT(SYSTEM, KC_APPLICATION),                     MT(MOD_MEH, KC_DELETE),        KC_LCTL,                        LT(NAVNUM,KC_ENTER)
   ),
   [NAVNUM] = LAYOUT_moonlander(
@@ -288,6 +288,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 void keyboard_post_init_user(void) {
     rgb_matrix_enable();
+    debug_enable = true;
 
     uprintf("KC_LGUI: %u\n", KC_LGUI);
     uprintf("KC_LSFT: %u\n", KC_LSFT);
