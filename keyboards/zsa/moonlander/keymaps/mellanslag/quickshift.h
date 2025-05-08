@@ -6,12 +6,24 @@
 #include "keymap_german.h"
 #include "quantum_keycodes.h"
 
+enum QUICKSHIFT_STATES {
+    INACTIVE__AWAITING_KEYPRESS,
+    KEY_PRESSED__AWAITING_RELEASE,
+    TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY,
+};
+
 bool is_quickshift_active = true;
 bool is_quickshift_active_at_current_layer = true;
-int quickshift_timeout = 150;
-bool is_quickshift_timer_active = false;
-uint16_t quickshift_timer = 0;
-uint16_t quickshift_keycode_of_timer = 0;
+
+enum QUICKSHIFT_STATES quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
+int quickshift_timer = 0;
+uint16_t quickshift_timer_keycode = 0;
+
+// Timer when quickshift initially triggers
+int quickshift_trigger_timer_timeout = 150;
+
+// Timer when quickshift triggers the keypress, once it triggered and immediately sent backspace
+int quickshift_char_timer_timeout = 10;
 
 uint16_t quickshift_active_keycodes[] = {
     KC_A,
