@@ -67,8 +67,9 @@ enum unicode_names {
     E_FEUER,
     E_PARTY_TUETE,
     E_PARTY_TROETE,
+    E_CHECK_MARK_BUTTON,
     E_CROSS_MARK,
-    UNICODE_FOLDED_HANDS,
+    E_FOLDED_HANDS,
 
     // SPECIAL CHARACTERS
     C_CIRCUMFLEX_ACCENT,
@@ -135,8 +136,9 @@ const uint32_t PROGMEM unicode_map[] = {
     [E_FEUER]                      = 0x1F525,  // https://emojipedia.org/fire/
     [E_PARTY_TUETE]                = 0x1F389,  // https://emojipedia.org/party-popper/
     [E_PARTY_TROETE]               = 0x1F973,  // https://emojipedia.org/partying-face/
+    [E_CHECK_MARK_BUTTON]          = 0x2705,   // https://emojipedia.org/check-mark-button
     [E_CROSS_MARK]                 = 0x274C,   // https://emojipedia.org/cross-mark/
-    [UNICODE_FOLDED_HANDS]         = 0x1F64F,  // https://emojipedia.org/cross-mark/
+    [E_FOLDED_HANDS]               = 0x1F64F,  // https://emojipedia.org/folded-hands
 
     // SPECIAL CHARACTERS
     [C_CIRCUMFLEX_ACCENT]          = 0x5E,    // https://unicodelookup.com/#94/1
@@ -278,9 +280,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [EMOJI] = LAYOUT_moonlander(
 //  >                              <>                              <>                              <>                              <>                              <>                              <>                              <===============>                              <>                              <>                              <>                              <>                              <>                              <>                              <
-    KC_NO,                          UKC_EMOJI_ARROW_LEFT,           UKC_EMOJI_ARROW_DOWN,           UKC_EMOJI_ARROW_UP,             UKC_EMOJI_ARROW_RIGHT,          KC_NO         ,                 KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO,                          UM(UNICODE_FOLDED_HANDS),       KC_NO,                           KC_NO,                          KC_NO,
+    KC_NO,                          UKC_EMOJI_ARROW_LEFT,           UKC_EMOJI_ARROW_DOWN,           UKC_EMOJI_ARROW_UP,             UKC_EMOJI_ARROW_RIGHT,          KC_NO         ,                 KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO,                          UM(E_FOLDED_HANDS),       KC_NO,                           KC_NO,                          KC_NO,
     UM(E_FEUER),                    UKC_EMOJI_KEINE_AHNUNG,         UKC_EMOJI_MELDEN,               UM(E_AFFE_AUGEN),               UM(E_DAUMEN_HOCH),              UM(E_WINKEN),                   UM(E_HEULEN),                                  UM(E_PARTY_TUETE),              UM(E_ENGEL),                    UM(E_SMILEY_UMGEDREHT),         UM(E_SMILEY),                   UM(E_ZWINKERN),                  UM(E_BERECHNEND),               UM(E_CROSS_MARK),
-    UM(E_KICHERN),                  UM(E_HERZAUGEN),                UM(UNICODE_VERLIEBT),           UM(UNICODE_KUSS),               UKC_EMOJI_HERZ,                 UM(E_ROTE_WANGEN),              UM(E_ERSTAUNT),                                UM(E_PARTY_TROETE),             UM(E_HEULEN),                   UM(E_LAECHELN_MIT_SCHMUNZELN),  UM(E_LAECHELN_MIT_ZAEHNEN),     UM(E_LAECHELN_MIT_GROSSEN_AUGEN),UM(E_LAECHELN_MIT_GROSSEM_MUND),UKC_EMOJI_CHECK_MARK,
+    UM(E_KICHERN),                  UM(E_HERZAUGEN),                UM(UNICODE_VERLIEBT),           UM(UNICODE_KUSS),               UKC_EMOJI_HERZ,                 UM(E_ROTE_WANGEN),              UM(E_ERSTAUNT),                                UM(E_PARTY_TROETE),             UM(E_HEULEN),                   UM(E_LAECHELN_MIT_SCHMUNZELN),  UM(E_LAECHELN_MIT_ZAEHNEN),     UM(E_LAECHELN_MIT_GROSSEN_AUGEN),UM(E_LAECHELN_MIT_GROSSEM_MUND),UM(E_CHECK_MARK_BUTTON),
     UKC_EMOJI_TRAURIG_STARK,        UM(E_SMILEY_TRAURIG_LEICHT),    UM(E_SMILEY_OHNE_MUND),         UM(E_SMILEY_DOOF),              UM(E_AUGEN_VERDREHEN),          UM(E_BESORGT),                                                                                                         UM(E_ROFL),                     UM(E_ZWEI_TRAENEN),             UM(E_EINE_TRAENE),              UM(E_ZUNGE),                 UM(E_LECKEN),               UM(E_CRAZY),
     KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                          KC_NO,                                                              KC_NO,                                         KC_NO,                                                              KC_NO,                          KC_NO,                          KC_NO,                       KC_NO,                      KC_NO,
                                                                                                                                                     KC_NO,                          KC_NO,                          KC_NO,                                         KC_NO,                          KC_NO,                          KC_NO
@@ -334,6 +336,20 @@ void matrix_scan_user() {
     quickshift__matrix_scan_user();
 }
 
+// Override QMK Unicode start/finish hooks (these are weak in quantum/unicode/unicode.c).
+// Start: Ctrl+Cmd+Space (macOS Emoji picker), Finish: Enter.
+void unicode_input_start(void) {
+    register_code(KC_F13);
+    register_code(KC_LALT);
+    wait_ms(25);
+}
+
+void unicode_input_finish(void) {
+    unregister_code(KC_LALT);
+    unregister_code(KC_F13);
+    wait_ms(100);
+}
+
 layer_state_t layer_state_set_user(layer_state_t state) {
     quickshift__layer_set_state_user(state);
     return state;
@@ -352,8 +368,8 @@ void suspend_wakeup_init_kb(void)
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     uint8_t currentLayer = biton32(layer_state);
     if (currentLayer == EMOJI) {
-        register_code(KC_F14);
+        register_code(KC_F19);
     } else {
-        unregister_code(KC_F14);
+        unregister_code(KC_F19);
     }
 }
