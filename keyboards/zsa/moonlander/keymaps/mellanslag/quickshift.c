@@ -23,16 +23,8 @@ bool array_contains(uint16_t *arr, int size, uint16_t val) {
     return false;
 }
 
-bool is_basic_keycode(uint16_t keycode) {
-    return array_contains(quickshift_active_keycodes_basic, sizeof(quickshift_active_keycodes_basic), keycode);
-}
-
-bool is_special_keycode(uint16_t keycode) {
-    return array_contains(quickshift_active_keycodes_special, sizeof(quickshift_active_keycodes_special), keycode);
-}
-
 bool is_quickshift_active_for_keycode(uint16_t keycode) {
-    return is_basic_keycode(keycode) || is_special_keycode(keycode);
+    return array_contains(quickshift_keycodes, sizeof(quickshift_keycodes), keycode);
 }
 
 #ifdef KEY_OVERRIDE_ENABLE
@@ -84,14 +76,6 @@ static const key_override_t *find_active_override(uint16_t keycode, uint8_t acti
 #endif
 
 uint16_t get_shifted_keycode(uint16_t keycode) {
-    if (is_special_keycode(keycode)) {
-        for (int i = 0; i < sizeof(quickshift_special_keycode_mappings) / sizeof(quickshift_special_keycode_mappings[0]); i++) {
-        	if (quickshift_special_keycode_mappings[i][0] == keycode) {
-        	    return quickshift_special_keycode_mappings[i][1];
-        	}
-    	}
-    }
-
 #ifdef KEY_OVERRIDE_ENABLE
     const key_override_t *matched_override = find_active_override(keycode, MOD_MASK_SHIFT);
     if (matched_override && matched_override->replacement != KC_NO) {
@@ -158,16 +142,6 @@ bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
             }
-            return true;
-        } else if (record->event.pressed && is_only_shift_modifier_currently_active() && is_special_keycode(keycode)) {
-            uint16_t shifted_keycode = get_shifted_keycode(keycode);
-            uint8_t mods = get_mods();
-
-            unregister_mods(mods);
-            register_code16(shifted_keycode);
-            unregister_code16(shifted_keycode);
-            register_mods(mods);
-
             return true;
         }
     }
