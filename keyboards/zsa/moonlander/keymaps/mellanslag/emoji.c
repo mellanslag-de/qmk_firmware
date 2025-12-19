@@ -14,6 +14,7 @@ const struct {
     {UKC_EMOJI_ARROW_DOWN, "\u2B07\uFE0F"},                   // Down arrow
     {UKC_EMOJI_ARROW_RIGHT, "\u27A1\uFE0F"},                  // Right arrow
     {UKC_EMOJI_ARROW_LEFT, "\u2B05\uFE0F"},                   // Left arrow
+   	{UKC_CAPITAL_ESZETT, "\u1E9E"},                           // Capital Eszett
 };
 
 static inline const char* get_unicode_string(uint16_t keycode) {

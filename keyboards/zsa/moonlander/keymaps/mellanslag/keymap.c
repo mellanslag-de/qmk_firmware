@@ -24,81 +24,13 @@
 #include "key_overrides.c"
 #include "quantum.h"
 #include QMK_KEYBOARD_H
+#include "keymap.h"
 #include "keymap_german.h"
 #include "quickshift.c"
 #include "my_keycodes.h"
 #include "emoji.c"
 #include "rgb.c"
 #include "layers.h"
-
-enum unicode_names {
-    // EMOJIS
-    E_UMARMEN,
-    UNICODE_KUSS,
-    UNICODE_VERLIEBT,
-    E_HERZAUGEN,
-    E_SMILEY_UMGEDREHT,
-    E_SMILEY,
-    E_SMILEY_OHNE_MUND,
-    E_SMILEY_DOOF,
-    E_SMILEY_TRAURIG_LEICHT,
-    E_LAECHELN_MIT_SCHMUNZELN,
-    E_LAECHELN_MIT_GROSSEN_AUGEN,
-    E_LAECHELN_MIT_ZAEHNEN,
-    E_LAECHELN_MIT_GROSSEM_MUND,
-    E_ZWINKERN,
-    E_LECKEN,
-    E_ZUNGE,
-    E_EINE_TRAENE,
-    E_ZWEI_TRAENEN,
-    E_ROTE_WANGEN,
-    E_BERECHNEND,
-    E_CRAZY,
-    E_ERSTAUNT,
-    E_BESORGT,
-    E_KICHERN,
-    E_AFFE_AUGEN,
-    E_AUGEN_VERDREHEN,
-    E_ROFL,
-    E_HEULEN,
-    E_ENGEL,
-    E_DAUMEN_HOCH,
-    E_WINKEN,
-    E_FEUER,
-    E_PARTY_TUETE,
-    E_PARTY_TROETE,
-    E_CHECK_MARK_BUTTON,
-    E_CROSS_MARK,
-    E_FOLDED_HANDS,
-
-    // SPECIAL CHARACTERS
-    C_CIRCUMFLEX_ACCENT,
-    C_GRAVE_ACCENT,
-    C_ACUTE_ACCENT,
-    C_FEMININE_ORD_INDICATOR,
-    C_MIDDLE_DOT,
-    C_EN_DASH,
-    C_POUND_SIGN,
-    C_HTS_CHAR_TAB_SET,
-    C_CURRENCY_SIGN,
-    C_INV_EXCLAMATION_MARK,
-    C_INV_QUESTION_MARK,
-    C_SUPERSCRIPT_ONE,
-    C_CLOCKWISE_ARROW,
-    C_SNGLE_ANGLE_QUOT_MARK_OPEN,
-    C_SNGLE_ANGLE_QUOT_MARK_CLSE,
-    C_CENT_SIGN,
-    C_YEN_SIGN,
-    C_SNGLE_LOW_9_QUOT_MARK_OPEN,
-    C_LEFT_SINGLE_QUOTATION_MARK,
-    C_RIGHT_SNGLE_QUOTATION_MARK,
-    C_LATIN_SMALL_LETTER_LONG_S,
-    C_NUMERO_SIGN,
-    C_MASCULINE_ORD_INDICATOR,
-    C_HORIZONTAL_ELLIPSIS,
-    C_7,
-    C_EURO_SIGN,
-};
 
 const uint32_t PROGMEM unicode_map[] = {
     // EMOJIS
@@ -141,6 +73,7 @@ const uint32_t PROGMEM unicode_map[] = {
     [E_FOLDED_HANDS]               = 0x1F64F,  // https://emojipedia.org/folded-hands
 
     // SPECIAL CHARACTERS
+    [C_CAPITAL_ESZETT]             = 0x1E9E,
     [C_CIRCUMFLEX_ACCENT]          = 0x5E,    // https://unicodelookup.com/#94/1
     [C_GRAVE_ACCENT]               = 0x60,    // https://unicodelookup.com/#96/1
     [C_ACUTE_ACCENT]               = 0xB4,    // https://unicodelookup.com/#180/1
@@ -271,7 +204,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
   [FN] = LAYOUT_moonlander(
 //  >                                      <>                                  <>                                  <>                                  <>                                  <>                                  <>                              <===============>                              <>                              <>                              <>                              <>                              <>                              <>                              <
-    M_OPEN_DISPLAY_SETTINGS,        KC_NO,                          KC_AUDIO_VOL_DOWN,              KC_AUDIO_MUTE,                  KC_AUDIO_VOL_UP,                MU_TOGG,                        QK_BOOTLOADER,                                 RGB_SAD,                        RGB_SAI,                        KC_MEDIA_PREV_TRACK,            KC_MEDIA_PLAY_PAUSE,            KC_MEDIA_NEXT_TRACK,            KC_MEDIA_REWIND,                KC_MEDIA_FAST_FORWARD,
+    M_OPEN_DISPLAY_SETTINGS,        UKC_CAPITAL_ESZETT,                          KC_AUDIO_VOL_DOWN,              KC_AUDIO_MUTE,                  KC_AUDIO_VOL_UP,                MU_TOGG,                        QK_BOOTLOADER,                                 RGB_SAD,                        RGB_SAI,                        KC_MEDIA_PREV_TRACK,            KC_MEDIA_PLAY_PAUSE,            KC_MEDIA_NEXT_TRACK,            KC_MEDIA_REWIND,                KC_MEDIA_FAST_FORWARD,
     KC_TRANSPARENT,                 KC_TRANSPARENT,                 KC_MS_WH_LEFT,                  KC_MS_UP,                       KC_MS_WH_RIGHT,                 QK_DYNAMIC_MACRO_PLAY_1,        QK_DYNAMIC_MACRO_RECORD_START_1,               RGB_HUD,                        RGB_HUI,                        KC_F7,                          KC_F8,                          KC_F9,                          KC_F10,                         KC_TRANSPARENT,
     KC_TRANSPARENT,                 KC_MS_WH_UP,                    KC_MS_LEFT,                     KC_MS_DOWN,                     KC_MS_RIGHT,                    QK_DYNAMIC_MACRO_PLAY_2,        QK_DYNAMIC_MACRO_RECORD_START_2,               RGB_TOG,                        RGB_VAI,                        KC_F4,                          KC_F5,                          KC_F6,                          KC_F11,                         KC_TRANSPARENT,
     KC_TRANSPARENT,                 KC_MS_WH_DOWN,                  LALT(LCTL(LSFT(KC_1))),         LALT(LCTL(LSFT(KC_2))),         LALT(LCTL(LSFT(KC_3))),         QK_DYNAMIC_MACRO_RECORD_STOP,                                                                                          RGB_TOG,                        KC_F1,                          KC_F2,                      KC_F3,                      KC_F12,                         TO(QWERTZ_GAMING),

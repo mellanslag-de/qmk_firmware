@@ -55,18 +55,15 @@ uint16_t quickshift_active_keycodes_basic[] = {
     DE_ADIA,
     DE_ODIA,
     DE_UDIA,
+	KC_2,
+	DE_SS,
+    KC_6,
 };
 
 uint16_t quickshift_active_keycodes_special[] = {
-    DE_SS,
-    KC_2,
-    KC_6
 };
 
 uint16_t quickshift_special_keycode_mappings[][2] = {
-    {DE_SS, RALT(LSFT(DE_SS))},
-    {KC_2,  LSFT(KC_3)},
-    {KC_6,  RALT(KC_E)},
 };
 
 int quickshift_active_layers[] = {

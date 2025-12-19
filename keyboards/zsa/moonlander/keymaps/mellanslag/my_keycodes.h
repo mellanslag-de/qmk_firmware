@@ -19,4 +19,7 @@ enum my_keycodes {
     UKC_EMOJI_ARROW_DOWN,
     UKC_EMOJI_ARROW_RIGHT,
     UKC_EMOJI_ARROW_LEFT,
+
+	// Special Chars
+	UKC_CAPITAL_ESZETT,
 };

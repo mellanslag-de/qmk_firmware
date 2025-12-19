@@ -5,6 +5,9 @@
 #include "action.h"
 #include "action_util.h"
 #include "quantum.h"
+#ifdef KEY_OVERRIDE_ENABLE
+#    include "process_key_override.h"
+#endif
 #include "caps_word.c"
 
 //
@@ -32,14 +35,70 @@ bool is_quickshift_active_for_keycode(uint16_t keycode) {
     return is_basic_keycode(keycode) || is_special_keycode(keycode);
 }
 
+#ifdef KEY_OVERRIDE_ENABLE
+/**
+ * Mirror of QMK's internal key_override_matches_active_modifiers.
+ * Handles bitwise logic for one-sided vs both-sided modifier matching.
+ */
+static bool quickshift_matches_modifiers(const key_override_t *override, uint8_t active_mods) {
+    if ((override->negative_mod_mask & active_mods) != 0) {
+        return false;
+    }
+
+    if (override->trigger_mods == 0) {
+        return true;
+    }
+
+    if ((override->options & ko_option_one_mod) != 0) {
+        return (override->trigger_mods & active_mods) != 0;
+    } else {
+        uint8_t required_one_sided = (override->trigger_mods & 0b1111) | (override->trigger_mods >> 4);
+        uint8_t active_required    = override->trigger_mods & active_mods;
+        uint8_t active_one_sided   = (active_required & 0b1111) | (active_required >> 4);
+        return active_one_sided == required_one_sided;
+    }
+}
+
+/**
+ * Iterates through user-defined key overrides to find a match for the current keycode.
+ */
+static const key_override_t *find_active_override(uint16_t keycode, uint8_t active_mods) {
+    if (key_overrides == NULL) {
+        return NULL;
+    }
+
+    uint8_t current_layer = get_highest_layer(layer_state);
+
+    for (uint8_t i = 0; key_overrides[i] != NULL; i++) {
+        const key_override_t *current_override = key_overrides[i];
+
+        if (current_override->trigger == keycode &&
+            (current_override->layers & (1UL << current_layer)) &&
+            (current_override->enabled == NULL || (*current_override->enabled & 1)) &&
+            quickshift_matches_modifiers(current_override, active_mods)) {
+            return current_override;
+        }
+    }
+    return NULL;
+}
+#endif
+
 uint16_t get_shifted_keycode(uint16_t keycode) {
     if (is_special_keycode(keycode)) {
         for (int i = 0; i < sizeof(quickshift_special_keycode_mappings) / sizeof(quickshift_special_keycode_mappings[0]); i++) {
-        if (quickshift_special_keycode_mappings[i][0] == keycode) {
-            return quickshift_special_keycode_mappings[i][1];
-        }
+        	if (quickshift_special_keycode_mappings[i][0] == keycode) {
+        	    return quickshift_special_keycode_mappings[i][1];
+        	}
+    	}
     }
+
+#ifdef KEY_OVERRIDE_ENABLE
+    const key_override_t *matched_override = find_active_override(keycode, MOD_MASK_SHIFT);
+    if (matched_override && matched_override->replacement != KC_NO) {
+        return matched_override->replacement;
     }
+#endif
+
     return LSFT(keycode);
 }
 
@@ -129,10 +188,36 @@ void quickshift__matrix_scan_user(void) {
         }
 
         if (quickshift_timer_state == TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY && timer_elapsed(quickshift_timer) > quickshift_char_timer_timeout) {
-            uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
+            bool event_handled = false;
 
-            register_code16(shifted_keycode);
-            unregister_code16(shifted_keycode);
+#ifdef KEY_OVERRIDE_ENABLE
+            const key_override_t *active_override = find_active_override(quickshift_timer_keycode, MOD_MASK_SHIFT);
+            if (active_override) {
+                bool should_register_replacement = (active_override->replacement != KC_NO);
+
+                if (active_override->custom_action != NULL) {
+                    // Execute custom action: press state.
+                    // Returns true if the standard replacement should still be processed.
+                    should_register_replacement &= active_override->custom_action(true, active_override->context);
+
+                    // Immediately release the custom action for the tap event
+                    active_override->custom_action(false, active_override->context);
+                    event_handled = true;
+                }
+
+                if (should_register_replacement) {
+                    register_code16(active_override->replacement);
+                    unregister_code16(active_override->replacement);
+                    event_handled = true;
+                }
+            }
+#endif
+
+            if (!event_handled) {
+                uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
+                register_code16(shifted_keycode);
+                unregister_code16(shifted_keycode);
+            }
 
             quickshift_timer = 0;
             quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
