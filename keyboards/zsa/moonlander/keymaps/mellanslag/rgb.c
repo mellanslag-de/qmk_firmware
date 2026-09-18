@@ -20,7 +20,7 @@ const uint8_t ledmap[][RGB_MATRIX_LED_COUNT][3] = {
 
 void rgb__set_layer_color(int layer) {
     for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        HSV hsv = {
+        hsv_t hsv = {
             .h = pgm_read_byte(&ledmap[layer][i][0]),
             .s = pgm_read_byte(&ledmap[layer][i][1]),
             .v = pgm_read_byte(&ledmap[layer][i][2]),
@@ -28,7 +28,7 @@ void rgb__set_layer_color(int layer) {
         if (!hsv.h && !hsv.s && !hsv.v) {
             rgb_matrix_set_color(i, 0, 0, 0);
         } else {
-            RGB rgb = hsv_to_rgb(hsv);
+            rgb_t rgb = hsv_to_rgb(hsv);
             float f = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
             rgb_matrix_set_color(i, f * rgb.r, f * rgb.g, f * rgb.b);
         }
@@ -67,12 +67,6 @@ bool rgb__rgb_matrix_indicators_user(void) {
     }
     return true;
 }
-
-typedef struct {
-    uint8_t h; // Hue
-    uint8_t s; // Saturation
-    uint8_t v; // Value
-} hsv_t;
 
 const struct {
     uint16_t keycode;

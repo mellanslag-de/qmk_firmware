@@ -7,6 +7,7 @@
 #include "quantum.h"
 #ifdef KEY_OVERRIDE_ENABLE
 #    include "process_key_override.h"
+#    include "keymap_introspection.h"
 #endif
 #include "caps_word.c"
 
@@ -55,14 +56,13 @@ static bool quickshift_matches_modifiers(const key_override_t *override, uint8_t
  * Iterates through user-defined key overrides to find a match for the current keycode.
  */
 static const key_override_t *find_active_override(uint16_t keycode, uint8_t active_mods) {
-    if (key_overrides == NULL) {
-        return NULL;
-    }
-
     uint8_t current_layer = get_highest_layer(layer_state);
 
-    for (uint8_t i = 0; key_overrides[i] != NULL; i++) {
-        const key_override_t *current_override = key_overrides[i];
+    for (uint16_t i = 0; i < key_override_count(); i++) {
+        const key_override_t *current_override = key_override_get(i);
+        if (current_override == NULL) {
+            continue;
+        }
 
         if (current_override->trigger == keycode &&
             (current_override->layers & (1UL << current_layer)) &&

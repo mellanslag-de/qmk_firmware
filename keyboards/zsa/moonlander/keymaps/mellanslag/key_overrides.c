@@ -41,9 +41,8 @@ static const key_override_t shifted_6_becomes_euro_sign = {
     .context = NULL,
 	.enabled = NULL
 };
-const key_override_t **key_overrides = (const key_override_t *[]){
+const key_override_t *key_overrides[] = {
     &shifted_2_becomes_paragraph_sign,
 	&shifted_eszet_becomes_large_eszet,
 	&shifted_6_becomes_euro_sign,
-    NULL,
 };
