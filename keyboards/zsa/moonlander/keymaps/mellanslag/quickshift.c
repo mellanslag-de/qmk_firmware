@@ -9,7 +9,14 @@
 #    include "process_key_override.h"
 #    include "keymap_introspection.h"
 #endif
-#include "caps_word.c"
+// Caps Word ist aktuell nicht eingeschaltet. Bei CAPS_WORD_ENABLE = yes liefert
+// quantum.h die Deklaration und der Core baut quantum/caps_word.c; ohne das Feature
+// haelt dieser Stub den Guard in quickshift__process_record_user kompilierbar.
+#ifndef CAPS_WORD_ENABLE
+static inline bool is_caps_word_on(void) {
+    return false;
+}
+#endif
 
 //
 // Created by ddeut on 06.07.2021.
@@ -25,7 +32,7 @@ bool array_contains(uint16_t *arr, int size, uint16_t val) {
 }
 
 bool is_quickshift_active_for_keycode(uint16_t keycode) {
-    return array_contains(quickshift_keycodes, sizeof(quickshift_keycodes), keycode);
+    return array_contains(quickshift_keycodes, sizeof(quickshift_keycodes) / sizeof(quickshift_keycodes[0]), keycode);
 }
 
 #ifdef KEY_OVERRIDE_ENABLE

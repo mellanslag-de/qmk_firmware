@@ -5,9 +5,6 @@
 #include "keymap.h"
 #include "layers.h"
 
-// Forward declaration of your emoji processor or just use send_unicode_string directly
-extern void send_unicode_string(const char *str);
-
 static const key_override_t shifted_2_becomes_paragraph_sign = ko_make_with_layers(MOD_MASK_SHIFT, KC_2, LSFT(KC_3), (1 << LETTERS));
 
 static bool handle_capital_eszett(bool pressed, void *context) {

@@ -270,7 +270,7 @@ void matrix_scan_user() {
 }
 
 // Override QMK Unicode start/finish hooks (these are weak in quantum/unicode/unicode.c).
-// Start: Ctrl+Cmd+Space (macOS Emoji picker), Finish: Enter.
+// Start: hold F13 + Left Alt; Finish: release both.
 void unicode_input_start(void) {
     register_code(KC_F13);
     register_code(KC_LALT);
@@ -293,13 +293,13 @@ void suspend_power_down_user(void)
     rgb_matrix_set_suspend_state(true);
 }
 
-void suspend_wakeup_init_kb(void)
+void suspend_wakeup_init_user(void)
 {
     rgb_matrix_set_suspend_state(false);
 }
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    uint8_t currentLayer = biton32(layer_state);
+    uint8_t currentLayer = get_highest_layer(layer_state);
     if (currentLayer == EMOJI) {
         register_code(KC_F19);
     } else {

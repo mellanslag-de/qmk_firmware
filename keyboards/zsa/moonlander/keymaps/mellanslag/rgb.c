@@ -19,6 +19,10 @@ const uint8_t ledmap[][RGB_MATRIX_LED_COUNT][3] = {
 // @formatter:on
 
 void rgb__set_layer_color(int layer) {
+    // ledmap only defines rows up to [FN]; guard against layers without an entry.
+    if (layer < 0 || (size_t)layer >= sizeof(ledmap) / sizeof(ledmap[0])) {
+        return;
+    }
     for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
         hsv_t hsv = {
             .h = pgm_read_byte(&ledmap[layer][i][0]),
@@ -39,7 +43,7 @@ bool rgb__rgb_matrix_indicators_user(void) {
     if (keyboard_config.disable_layer_led) {
         return true;
     }
-    switch (biton32(layer_state)) {
+    switch (get_highest_layer(layer_state)) {
         case 4:
             rgb__set_layer_color(4);
             break;
