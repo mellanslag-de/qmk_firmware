@@ -1,8 +1,9 @@
-#include "action.h"
-#include "my_keycodes.h"
+#include "emoji.h"
+#include "quantum.h"
 #include "unicode/unicode.h"
+#include "my_keycodes.h"
 
-const struct {
+static const struct {
     enum my_keycodes keycode;
     const char* unicode;
 } keycode_to_unicode_map[] = {

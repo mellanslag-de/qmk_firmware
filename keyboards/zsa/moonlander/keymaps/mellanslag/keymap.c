@@ -21,15 +21,15 @@
 #include "action.h"
 #include "info_config.h"
 #include "moonlander.h"
-#include "key_overrides.c"
+#include "key_overrides.h"
 #include "quantum.h"
 #include QMK_KEYBOARD_H
 #include "keymap.h"
 #include "keymap_german.h"
 #include "quickshift.h"
 #include "my_keycodes.h"
-#include "emoji.c"
-#include "rgb.c"
+#include "emoji.h"
+#include "rgb.h"
 #include "layers.h"
 
 const uint32_t PROGMEM unicode_map[] = {

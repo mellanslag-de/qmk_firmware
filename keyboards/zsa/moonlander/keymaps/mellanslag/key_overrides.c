@@ -1,3 +1,4 @@
+#include "key_overrides.h"
 #include "quantum.h"
 #include "keymap_german.h"
 #include "process_key_override.h"
