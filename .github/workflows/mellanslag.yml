@@ -1,0 +1,37 @@
+name: mellanslag keymap
+
+# Replaces ZSA's build.yml and unit_test.yml, which build ZSA's own keymaps
+# and QMK's core tests and fail on firmware25 itself.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        persist-credentials: false
+        submodules: true
+
+    - name: Quickshift host tests
+      run: sh keyboards/zsa/moonlander/keymaps/mellanslag/quickshift/test/run.sh
+
+    - name: Build with Caps Word enabled
+      run: qmk compile -kb zsa/moonlander/reva -km mellanslag -e SKIP_GIT=1 -e CAPS_WORD_ENABLE=yes
+
+    - name: Build
+      run: qmk compile -kb zsa/moonlander/reva -km mellanslag -e SKIP_GIT=1
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@v4
+      with:
+        name: zsa_moonlander_reva_mellanslag
+        path: zsa_moonlander_reva_mellanslag.bin
+        if-no-files-found: error

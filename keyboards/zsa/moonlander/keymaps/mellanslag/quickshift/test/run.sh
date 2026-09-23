@@ -6,7 +6,7 @@
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 keymap="$here/../.."
-bin=$(mktemp -t quickshift-test)
+bin=$(mktemp "${TMPDIR:-/tmp}/quickshift-test.XXXXXX")
 trap 'rm -f "$bin"' EXIT
 
 cc -std=gnu11 -Wall -Wextra -Wno-unused-parameter \

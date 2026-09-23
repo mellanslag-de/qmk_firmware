@@ -98,6 +98,15 @@ keyboard.
 
 Before any commit, build the regular variant.
 
+CI: `.github/workflows/mellanslag.yml` runs on every push. It runs the
+quickshift harness, builds with `CAPS_WORD_ENABLE=yes`, builds the regular
+variant and uploads the `.bin` as an artifact. It replaces ZSA's
+`build.yml` and `unit_test.yml`, which build only ZSA's own keymaps and
+QMK's core tests and already fail on `zsa/firmware25`. When moving to a new
+ZSA `firmwareNN` branch, delete those two again and bring this workflow
+along. Pushing workflow files needs SSH (`origin` is SSH) or a token with
+the `workflow` scope.
+
 ## Known issues, deliberately left as is
 
 - `keymap.c:202`: `MO(10)` on the QWERTZ_GAMING layer. There is no layer 10
