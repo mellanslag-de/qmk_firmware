@@ -13,7 +13,7 @@ UNICODEMAP_ENABLE = yes
 #CAPS_WORD_ENABLE = yes
 KEY_OVERRIDE_ENABLE = yes
 
-SRC += quickshift.c
+SRC += quickshift/quickshift.c
 SRC += emoji.c
 SRC += rgb.c
 SRC += key_overrides.c

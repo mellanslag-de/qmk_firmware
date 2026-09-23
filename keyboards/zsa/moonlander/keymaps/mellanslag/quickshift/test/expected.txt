@@ -1,0 +1,13 @@
+01 tap a                                     a
+02 hold a 300ms                              a<BS>A
+03 release inside correction window          a<BS>A
+04 Shift pressed inside correction window    a<BS>A[<MOD>]
+05 other qs key inside correction window     a<BS>Ab
+06 rollover a->b, a released early           ab
+07 Ctrl pressed while echoed                 a[<MOD>]
+08 Shift already held (passthrough)          [a]
+09 inactive layer (passthrough)              [a]
+10 mod-tap mods active, key up in window     a<BS>A
+11 non-qs key inside correction window       a<BS>[_]A
+12 non-qs key after correction               a<BS>A[_]
+13 eszett hold, then tap 2                   s<BS>S2

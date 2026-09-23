@@ -53,7 +53,7 @@ patches (Oryx, RGB, LUFA, `modules/zsa`).
 | `my_keycodes.h` | Custom keycodes from `SAFE_RANGE` (RGB macros, emoji, capital eszett) |
 | `keymap.h` | `enum unicode_names`, indices into `unicode_map` (`UM(...)`) |
 | `key_overrides.c/.h` | Shift overrides: `2`→`§`, `ß`→`ẞ` (custom action), `6`→`€` |
-| `quickshift.c/.h` | Quickshift state machine |
+| `quickshift/` | Quickshift state machine and its host harness, see `quickshift/CLAUDE.md` |
 | `emoji.c/.h` | Custom keycode → Unicode string via `send_unicode_string` |
 | `rgb.c/.h` | Per-layer `ledmap`, indicator hook, RGB colour macros |
 | `keymap.json` | Enables the `zsa/defaults` module (provides `TOGGLE_LAYER_COLOR`, `LED_LEVEL`) |
@@ -61,10 +61,11 @@ patches (Oryx, RGB, LUFA, `modules/zsa`).
 
 ### How the files are compiled
 
-Every `.c` file except `keymap.c` is its own translation unit: listed as
-`SRC +=` in `rules.mk`, interface in the matching header, everything else
-`static`. `keymap.c` includes only headers. Follow this pattern for new code:
-a header must not define variables, and a `.c` file is never `#include`d.
+Every `.c` file except `keymap.c` (including `quickshift/quickshift.c`) is
+its own translation unit: listed as `SRC +=` in `rules.mk`, interface in the
+matching header, everything else `static`. `keymap.c` includes only
+headers. Follow this pattern for new code: a header must not define
+variables, and a `.c` file is never `#include`d.
 
 Two arrays are special because QMK's keymap introspection is compiled together
 with `keymap.c` and takes their size with `ARRAY_SIZE`:
@@ -77,45 +78,8 @@ with `keymap.c` and takes their size with `ARRAY_SIZE`:
 
 ## Quickshift
 
-Tap a key for the plain character; hold it past `QUICKSHIFT_HOLD_TIMEOUT`
-(150 ms) for the shifted one. The plain character is echoed immediately and
-corrected afterwards (backspace, then the replacement after
-`QUICKSHIFT_CORRECTION_DELAY`, 5 ms), so typing never waits. That
-echo-then-correct design is intentional; QMK's Auto Shift avoids the
-correction but delays every character.
-
-The code is an explicit state machine in XState vocabulary (the user knows
-XState, so keep this wording). The statechart and transition table are the
-comment at the top of `quickshift.c`, and they must stay in sync with the
-code.
-
-- States: `QS_IDLE`, `QS_ECHOED` (plain char on screen, key held),
-  `QS_CORRECTING` (backspace sent, replacement owed).
-- Events: `QS_EV_KEY_DOWN`, `QS_EV_KEY_UP`, `QS_EV_MOD_DOWN`, `QS_EV_TICK`.
-  The QMK hooks only build events; every state change goes through
-  `quickshift_dispatch()`.
-- Context `{keycode, since, override}` holds only the current run and is
-  wiped on entering `QS_IDLE`. Configuration (timeouts, tables) and runtime
-  switches do not belong in it.
-- Order on a transition: exit action, then context assignment, then entry
-  action.
-- The exit action of `QS_CORRECTING` is the only place that sends the
-  replacement. It does so on every way out, except while modifiers are held
-  (it would fire a shortcut).
-- The shifted replacement comes from a matching key override, if any
-  (`find_active_override` mirrors QMK's matching), else `LSFT(keycode)`.
-
-Constraints:
-
-- `register_code()` does not re-enter `process_record_user`, so actions may
-  send keys without an event queue.
-- Actions run inside QMK hooks and block the scan loop. The capital-eszett
-  custom action goes through Unicode input (~125 ms of `wait_ms`).
-- Mods from mod-taps (e.g. `LSFT_T(KC_BSPC)`) or one-shots do not produce
-  `QS_EV_MOD_DOWN`; only plain modifier keycodes do.
-- Caps Word is off. The `!is_caps_word_on()` guard is kept on purpose, with a
-  stub for when the feature is disabled, so setting `CAPS_WORD_ENABLE = yes`
-  works without further changes. Keep that working.
+Hold a key for its shifted character. Everything about it (state machine,
+constraints, harness) is in `quickshift/CLAUDE.md`.
 
 ## Unicode and Karabiner Elements
 
@@ -127,15 +91,12 @@ do not shorten them without testing on the machine.
 
 ## Testing
 
-There are no automated tests in the repo. Quickshift was verified with a
-host harness: `quickshift.c` compiled with gcc against minimal QMK stubs,
-replaying key sequences with 1 ms ticks and comparing the emitted keys. It
-lived in a session scratchpad and is **not** in the repo; rebuild it if
-quickshift changes. It ran without `KEY_OVERRIDE_ENABLE`, so the override
-path (§, €, ẞ) can only be checked on the real keyboard.
+The only automated test is the quickshift host harness
+(`quickshift/test/run.sh`, see `quickshift/CLAUDE.md`). Everything else,
+including key overrides and Unicode input, can only be checked on the real
+keyboard.
 
-Before any commit: build the regular variant, and for quickshift changes also
-`-e CAPS_WORD_ENABLE=yes`.
+Before any commit, build the regular variant.
 
 ## Known issues, deliberately left as is
 
@@ -148,10 +109,7 @@ Before any commit: build the regular variant, and for quickshift changes also
 - `QK_DYNAMIC_MACRO_RECORD_STOP` is bound while `DYNAMIC_MACRO_ENABLE` is off.
 - `UKC_CAPITAL_ESZETT` exists twice: in `emoji.c` (`send_unicode_string`) and
   as a key override (`register_unicodemap`).
-- Quickshift: a non-quickshift key pressed within the 5 ms correction window
-  arrives before the replacement.
-- Dead code: `set_hsv_color` (`keymap.c`), `is_quickshift_active` is never
-  toggled, `UKC_EMOJI_CHECK_MARK` unused, `debug_enable`/`uprintf` leftovers
+- Dead code: `set_hsv_color` (`keymap.c`), `UKC_EMOJI_CHECK_MARK` unused, `debug_enable`/`uprintf` leftovers
   in `keyboard_post_init_user` (console is off).
 
 ## Working agreements

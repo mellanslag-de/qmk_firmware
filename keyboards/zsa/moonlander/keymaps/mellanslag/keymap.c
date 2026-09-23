@@ -26,7 +26,7 @@
 #include QMK_KEYBOARD_H
 #include "keymap.h"
 #include "keymap_german.h"
-#include "quickshift.h"
+#include "quickshift/quickshift.h"
 #include "my_keycodes.h"
 #include "emoji.h"
 #include "rgb.h"
