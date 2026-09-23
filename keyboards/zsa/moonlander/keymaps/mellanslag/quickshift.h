@@ -6,26 +6,23 @@
 #include "keymap_german.h"
 #include "quantum_keycodes.h"
 
-enum QUICKSHIFT_STATES {
-    INACTIVE__AWAITING_KEYPRESS,
-    KEY_PRESSED__AWAITING_RELEASE,
-    TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY,
-};
+// Delays of the quickshift machine (ms); override in config.h if needed.
 
+// How long a key must be held before it counts as meant to be shifted
+#ifndef QUICKSHIFT_HOLD_TIMEOUT
+#    define QUICKSHIFT_HOLD_TIMEOUT 150
+#endif
+
+// Minimum gap between the correcting backspace and the shifted replacement
+#ifndef QUICKSHIFT_CORRECTION_DELAY
+#    define QUICKSHIFT_CORRECTION_DELAY 5
+#endif
+
+// Runtime switches, read by the machine's guards. They are not part of the context.
 bool is_quickshift_active = true;
 bool is_quickshift_active_at_current_layer = true;
 
-enum QUICKSHIFT_STATES quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
-int quickshift_timer = 0;
-uint16_t quickshift_timer_keycode = 0;
-
-// Timer when quickshift initially triggers
-int quickshift_trigger_timer_timeout = 150;
-
-// Timer when quickshift triggers the keypress, once it triggered and immediately sent backspace
-int quickshift_char_timer_timeout = 5;
-
-uint16_t quickshift_keycodes[] = {
+static const uint16_t quickshift_keycodes[] = {
     KC_A,
     KC_B,
     KC_C,
@@ -55,13 +52,12 @@ uint16_t quickshift_keycodes[] = {
     DE_ADIA,
     DE_ODIA,
     DE_UDIA,
-	KC_2,
-	DE_SS,
+    KC_2,
+    DE_SS,
     KC_6,
 };
 
-int quickshift_active_layers[] = {
+static const uint8_t quickshift_active_layers[] = {
     LETTERS,
     QWERTZ,
 };
-

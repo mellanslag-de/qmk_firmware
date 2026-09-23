@@ -9,9 +9,9 @@
 #    include "process_key_override.h"
 #    include "keymap_introspection.h"
 #endif
-// Caps Word ist aktuell nicht eingeschaltet. Bei CAPS_WORD_ENABLE = yes liefert
-// quantum.h die Deklaration und der Core baut quantum/caps_word.c; ohne das Feature
-// haelt dieser Stub den Guard in quickshift__process_record_user kompilierbar.
+// Caps Word is currently switched off. With CAPS_WORD_ENABLE = yes, quantum.h
+// provides the declaration and the core builds quantum/caps_word.c; without the
+// feature, this stub keeps the key guard below compiling.
 #ifndef CAPS_WORD_ENABLE
 static inline bool is_caps_word_on(void) {
     return false;
@@ -22,17 +22,79 @@ static inline bool is_caps_word_on(void) {
 // Created by ddeut on 06.07.2021.
 //
 
-bool array_contains(uint16_t *arr, int size, uint16_t val) {
-    for (int i = 0; i < size; i++) {
-        if (arr[i] == val) {
+/*
+ * Quickshift: tap a key for the plain character, hold it for the shifted one.
+ * The plain character is echoed immediately and corrected once the hold is
+ * recognised (backspace + shifted replacement), so typing never waits.
+ *
+ * Statechart, in XState vocabulary:
+ *
+ *   QS_IDLE ──KEY_DOWN──▶ QS_ECHOED ──TICK [held > HOLD_TIMEOUT]──▶ QS_CORRECTING
+ *      ▲                     │                                          │
+ *      └─────KEY_UP──────────┘                                          │
+ *      └──────────────────TICK [> CORRECTION_DELAY]─────────────────────┘
+ *
+ *   state           event     guard                       target
+ *   --------------  --------  --------------------------  -------------
+ *   any             KEY_DOWN                              QS_ECHOED
+ *   any             KEY_UP                                QS_IDLE
+ *   any             MOD_DOWN                              QS_IDLE
+ *   QS_ECHOED       TICK      held > HOLD_TIMEOUT         QS_CORRECTING
+ *   QS_CORRECTING   TICK      elapsed > CORRECTION_DELAY  QS_IDLE
+ *
+ *   entry QS_IDLE        clear the context
+ *   entry QS_ECHOED      tap the key (the immediate echo)
+ *   entry QS_CORRECTING  tap backspace, resolve the replacement
+ *   exit  QS_CORRECTING  send the replacement, however the state is left
+ *
+ * Only QS_CORRECTING owes something: the backspace has already removed the
+ * echoed character. Its exit action settles that debt on every way out.
+ *
+ * KEY_DOWN and KEY_UP only reach the machine for quickshift keys and while
+ * quickshift_guard_handles_key() holds; TICK only while
+ * quickshift_guard_can_progress() holds. Otherwise the event is dropped and
+ * the state is kept.
+ */
+
+typedef enum {
+    QS_IDLE,       // nothing pending, nothing owed
+    QS_ECHOED,     // plain character is on screen, key still held, clock running
+    QS_CORRECTING, // backspace sent, shifted replacement owed
+} quickshift_state_t;
+
+typedef enum {
+    QS_EV_KEY_DOWN, // quickshift key pressed
+    QS_EV_KEY_UP,   // quickshift key released
+    QS_EV_MOD_DOWN, // a plain modifier key (Ctrl/Shift/Alt/GUI) pressed
+    QS_EV_TICK,     // one matrix scan passed
+} quickshift_event_t;
+
+// Data of the current run only, so entering QS_IDLE can wipe it wholesale.
+typedef struct {
+    uint16_t keycode; // key that started this run
+    uint16_t since;   // time of the last state change
+#ifdef KEY_OVERRIDE_ENABLE
+    const key_override_t *override; // resolved on entry to QS_CORRECTING
+#endif
+} quickshift_context_t;
+
+static quickshift_state_t   quickshift_state = QS_IDLE;
+static quickshift_context_t quickshift_ctx;
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+static bool is_any_modifier_currently_active(void) {
+    uint8_t mods = get_mods() | get_weak_mods() | get_oneshot_mods();
+    return (mods & (MOD_MASK_CTRL | MOD_MASK_SHIFT | MOD_MASK_ALT | MOD_MASK_GUI)) != 0;
+}
+
+static bool is_quickshift_keycode(uint16_t keycode) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(quickshift_keycodes); i++) {
+        if (quickshift_keycodes[i] == keycode) {
             return true;
         }
     }
     return false;
-}
-
-bool is_quickshift_active_for_keycode(uint16_t keycode) {
-    return array_contains(quickshift_keycodes, sizeof(quickshift_keycodes) / sizeof(quickshift_keycodes[0]), keycode);
 }
 
 #ifdef KEY_OVERRIDE_ENABLE
@@ -82,134 +144,167 @@ static const key_override_t *find_active_override(uint16_t keycode, uint8_t acti
 }
 #endif
 
-uint16_t get_shifted_keycode(uint16_t keycode) {
+// ─── Guards ──────────────────────────────────────────────────────────────────
+
+static bool quickshift_is_enabled(void) {
+    return is_quickshift_active && is_quickshift_active_at_current_layer;
+}
+
+// Decides whether a key event reaches the machine at all, and so whether
+// quickshift consumes the key.
+static bool quickshift_guard_handles_key(uint16_t keycode) {
+    return quickshift_is_enabled()
+        && !is_caps_word_on()
+        && !is_any_modifier_currently_active()
+        && is_quickshift_keycode(keycode);
+}
+
+// Decides whether TICK may advance the machine. Unlike key events it does not
+// look at Caps Word.
+static bool quickshift_guard_can_progress(void) {
+    return quickshift_is_enabled() && !is_any_modifier_currently_active();
+}
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
+
+static void quickshift_tap(uint16_t keycode) {
+    register_code(keycode);
+    unregister_code(keycode);
+}
+
+static void quickshift_tap16(uint16_t keycode) {
+    register_code16(keycode);
+    unregister_code16(keycode);
+}
+
+// Custom actions may block the scan loop for a while: the capital eszett goes
+// through unicode input, whose start/finish hooks wait about 125 ms.
+static void quickshift_send_replacement(void) {
+    uint16_t elapsed = timer_elapsed(quickshift_ctx.since);
+    if (elapsed < QUICKSHIFT_CORRECTION_DELAY) {
+        wait_ms(QUICKSHIFT_CORRECTION_DELAY - elapsed);
+    }
+
 #ifdef KEY_OVERRIDE_ENABLE
-    const key_override_t *matched_override = find_active_override(keycode, MOD_MASK_SHIFT);
-    if (matched_override && matched_override->replacement != KC_NO) {
-        return matched_override->replacement;
+    const key_override_t *override = quickshift_ctx.override;
+    if (override) {
+        bool handled          = false;
+        bool send_replacement = override->replacement != KC_NO;
+
+        if (override->custom_action != NULL) {
+            // Press state; returns whether the standard replacement should still be sent.
+            send_replacement &= override->custom_action(true, override->context);
+            // Immediately release the custom action for the tap event
+            override->custom_action(false, override->context);
+            handled = true;
+        }
+
+        if (send_replacement) {
+            quickshift_tap16(override->replacement);
+            handled = true;
+        }
+
+        if (handled) {
+            return;
+        }
     }
 #endif
 
-    return LSFT(keycode);
+    quickshift_tap16(LSFT(quickshift_ctx.keycode));
 }
 
-bool is_any_modifier_currently_active(void) {
-    uint8_t mods = get_mods() | get_weak_mods() | get_oneshot_mods();
+// ─── Machine ─────────────────────────────────────────────────────────────────
 
-    return
-        mods & MOD_MASK_CTRL
-        || mods & MOD_MASK_SHIFT
-        || mods & MOD_MASK_ALT
-        || mods & MOD_MASK_GUI;
-}
-
-bool is_only_shift_modifier_currently_active(void) {
-    uint8_t mods = get_mods() | get_weak_mods() | get_oneshot_mods();
-    return (mods & ~MOD_MASK_SHIFT) == 0 && (mods & MOD_MASK_SHIFT);
-}
-
-bool is_quickshift_currently_active(void) {
-    return
-        is_quickshift_active
-        && is_quickshift_active_at_current_layer;
-}
-
-void disable_timer_if_modifier_was_pressed(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        switch (keycode) {
-            case KC_LCTL:   // fall through
-            case KC_RCTL:   // fall through
-            case KC_LSFT:   // fall through
-            case KC_RSFT:   // fall through
-            case KC_LALT:   // fall through
-            case KC_RALT:   // fall through
-            case KC_LGUI:   // fall through
-            case KC_RGUI:
-                quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
-        }
-    }
-}
-
-bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
-    disable_timer_if_modifier_was_pressed(keycode, record);
-
-    if (
-        is_quickshift_currently_active()
-        && !is_caps_word_on()
-
-    ) {
-        if (!is_any_modifier_currently_active() && is_quickshift_active_for_keycode(keycode)) {
-            if (record->event.pressed) {
-                register_code(keycode);
-                unregister_code(keycode);
-
-                quickshift_timer_state   = KEY_PRESSED__AWAITING_RELEASE;
-                quickshift_timer         = record->event.time;
-                quickshift_timer_keycode = keycode;
-            } else {
-                quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
+static void quickshift_exit(void) {
+    switch (quickshift_state) {
+        case QS_CORRECTING:
+            // Skip only while modifiers are held: the replacement would then fire
+            // a shortcut instead of typing a character.
+            if (!is_any_modifier_currently_active()) {
+                quickshift_send_replacement();
             }
-            return true;
-        }
+            break;
+        default:
+            break;
+    }
+}
+
+static void quickshift_enter(quickshift_state_t target) {
+    quickshift_state = target;
+
+    switch (target) {
+        case QS_IDLE:
+            quickshift_ctx = (quickshift_context_t){0};
+            break;
+        case QS_ECHOED:
+            quickshift_tap(quickshift_ctx.keycode);
+            break;
+        case QS_CORRECTING:
+            quickshift_tap(KC_BSPC);
+            quickshift_ctx.since = timer_read();
+#ifdef KEY_OVERRIDE_ENABLE
+            quickshift_ctx.override = find_active_override(quickshift_ctx.keycode, MOD_MASK_SHIFT);
+#endif
+            break;
+    }
+}
+
+static void quickshift_transition(quickshift_state_t target) {
+    quickshift_exit();
+    quickshift_enter(target);
+}
+
+static void quickshift_dispatch(quickshift_event_t event, uint16_t keycode, uint16_t time) {
+    switch (event) {
+        case QS_EV_KEY_DOWN:
+            // exit, then assign the new run's context, then entry
+            quickshift_exit();
+            quickshift_ctx = (quickshift_context_t){.keycode = keycode, .since = time};
+            quickshift_enter(QS_ECHOED);
+            break;
+
+        case QS_EV_KEY_UP:
+        case QS_EV_MOD_DOWN:
+            quickshift_transition(QS_IDLE);
+            break;
+
+        case QS_EV_TICK:
+            if (!quickshift_guard_can_progress()) {
+                break;
+            }
+            if (quickshift_state == QS_ECHOED && timer_elapsed(quickshift_ctx.since) > QUICKSHIFT_HOLD_TIMEOUT) {
+                quickshift_transition(QS_CORRECTING);
+            } else if (quickshift_state == QS_CORRECTING && timer_elapsed(quickshift_ctx.since) > QUICKSHIFT_CORRECTION_DELAY) {
+                quickshift_transition(QS_IDLE);
+            }
+            break;
+    }
+}
+
+// ─── QMK entry points ────────────────────────────────────────────────────────
+
+// Returns true when quickshift consumed the key; the caller then stops processing it.
+bool quickshift__process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed && IS_MODIFIER_KEYCODE(keycode)) {
+        quickshift_dispatch(QS_EV_MOD_DOWN, keycode, record->event.time);
     }
 
-    return false;
+    if (!quickshift_guard_handles_key(keycode)) {
+        return false;
+    }
+
+    quickshift_dispatch(record->event.pressed ? QS_EV_KEY_DOWN : QS_EV_KEY_UP, keycode, record->event.time);
+    return true;
 }
 
 void quickshift__matrix_scan_user(void) {
-    if (
-        is_quickshift_currently_active() && !is_any_modifier_currently_active()
-    ) {
-        if (quickshift_timer_state == KEY_PRESSED__AWAITING_RELEASE && timer_elapsed(quickshift_timer) > quickshift_trigger_timer_timeout) {
-            register_code(KC_BSPC);
-            unregister_code(KC_BSPC);
-
-            quickshift_timer = timer_read();
-            quickshift_timer_state = TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY;
-        }
-
-        if (quickshift_timer_state == TRIGGERED_BACKSPACE__CHAR_TO_BE_PRESSED_AFTER_DELAY && timer_elapsed(quickshift_timer) > quickshift_char_timer_timeout) {
-            bool event_handled = false;
-
-#ifdef KEY_OVERRIDE_ENABLE
-            const key_override_t *active_override = find_active_override(quickshift_timer_keycode, MOD_MASK_SHIFT);
-            if (active_override) {
-                bool should_register_replacement = (active_override->replacement != KC_NO);
-
-                if (active_override->custom_action != NULL) {
-                    // Execute custom action: press state.
-                    // Returns true if the standard replacement should still be processed.
-                    should_register_replacement &= active_override->custom_action(true, active_override->context);
-
-                    // Immediately release the custom action for the tap event
-                    active_override->custom_action(false, active_override->context);
-                    event_handled = true;
-                }
-
-                if (should_register_replacement) {
-                    register_code16(active_override->replacement);
-                    unregister_code16(active_override->replacement);
-                    event_handled = true;
-                }
-            }
-#endif
-
-            if (!event_handled) {
-                uint16_t shifted_keycode = get_shifted_keycode(quickshift_timer_keycode);
-                register_code16(shifted_keycode);
-                unregister_code16(shifted_keycode);
-            }
-
-            quickshift_timer = 0;
-            quickshift_timer_state = INACTIVE__AWAITING_KEYPRESS;
-        }
-    }
+    quickshift_dispatch(QS_EV_TICK, KC_NO, 0);
 }
 
 void quickshift__layer_set_state_user(layer_state_t state) {
-    int current_layer = get_highest_layer(state);
+    uint8_t current_layer = get_highest_layer(state);
 
-    for (int i = 0; i < sizeof(quickshift_active_layers) / sizeof(quickshift_active_layers[0]); i++) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(quickshift_active_layers); i++) {
         if (current_layer == quickshift_active_layers[i]) {
             is_quickshift_active_at_current_layer = true;
             return;
